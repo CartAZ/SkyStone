@@ -74,7 +74,13 @@ public class AbsoluteSquirrelyGyroDrive1 extends OpMode {
 
 	SensorLib.EncoderGyroPosInt mPosInt;	// position integrator
 
+	final int wristMotorClicks = 288;
+	final int driveMotorClicks = 723;
+	final int liftMotorClicks = 384;
+
     float mServoPosition = 0;
+    float grabRotation = 0;
+    int wristRotation = 0;
 
 	/**
 	 * Constructor
@@ -86,7 +92,6 @@ public class AbsoluteSquirrelyGyroDrive1 extends OpMode {
 
 	@Override
 	public void init() {
-
 		// get hardware
 		rh = new RobotHardware();
 		rh.init(this);
@@ -123,6 +128,11 @@ public class AbsoluteSquirrelyGyroDrive1 extends OpMode {
 		SensorLib.EncoderGyroPosInt.DriveType dt = //SensorLib.EncoderGyroPosInt.DriveType.XDRIVE;
 				SensorLib.EncoderGyroPosInt.DriveType.MECANUM;
 		mPosInt = new SensorLib.EncoderGyroPosInt(dt,this, rh.mIMU, rh.mMotors, countsPerRev, wheelDiam, initialPosn);
+
+		rh.mWrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		rh.mWrist.setTargetPosition(0);
+		rh.mWrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		rh.mWrist.setPower(0.25f);
 	}
 
 
@@ -145,6 +155,9 @@ public class AbsoluteSquirrelyGyroDrive1 extends OpMode {
 		float dx = gamepad1.right_stick_x;
 		float dy = -gamepad1.right_stick_y;	// y is reversed :(
 
+		float lt = gamepad2.left_trigger;
+		float rt = gamepad2.right_trigger;
+
 		// power is the magnitude of the direction vector
 		double power = Math.sqrt(dx*dx + dy*dy);
 		if (Math.abs(power) < deadband)
@@ -152,6 +165,9 @@ public class AbsoluteSquirrelyGyroDrive1 extends OpMode {
 
 		// scale the joystick values to make it easier to control the robot more precisely at slower speeds.
 		power = scaleInput(power);
+		power /= 2;
+		power *= 1-(lt/2);
+		power *= 1+(rt);
 
 		// set the current power on the step that actually controls the robot
 		mStep.setPower((float) power);
@@ -214,6 +230,30 @@ public class AbsoluteSquirrelyGyroDrive1 extends OpMode {
         }
 
         telemetry.addData("servo position", mServoPosition);
+
+        // second controller
+
+		float ly = gamepad2.left_stick_y;
+		rh.mLift.setPower(ly);
+
+		//float wy = gamepad2.right_stick_y;
+		//rh.mWrist.setPower(wy);
+
+		if(gamepad2.x){
+			wristRotation = wristMotorClicks/4;
+		}
+		if(gamepad2.y){
+			wristRotation = (wristMotorClicks/2)-1;
+		}
+		rh.mWrist.setTargetPosition(wristRotation);
+
+		if(gamepad2.a){
+			grabRotation = 1;
+		}
+		if(gamepad2.b){
+			grabRotation = 0;
+		}
+		rh.mServo.setPosition(grabRotation);
     }
 
 	/*
