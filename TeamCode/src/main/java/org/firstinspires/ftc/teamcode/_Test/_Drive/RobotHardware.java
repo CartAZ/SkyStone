@@ -12,6 +12,8 @@ import org.firstinspires.ftc.teamcode._Libs.TestHardware;
 public class RobotHardware {
 
     public DcMotor[] mMotors;
+    public DcMotor mLift;
+    public DcMotor mWrist;
     public BNO055IMUHeadingSensor mIMU;
     public Servo mServo;
 
@@ -35,13 +37,18 @@ public class RobotHardware {
                 (mMotors[3] = mf.getDcMotor("left_motor")).setDirection(DcMotor.Direction.REVERSE);
             }
 
+            mLift = mf.getDcMotor("lift");
+
+            mWrist = mf.getDcMotor("wrist");
+            mWrist.setDirection(DcMotor.Direction.REVERSE);
+
             // get hardware IMU and wrap gyro in HeadingSensor object usable below
             mIMU = new BNO055IMUHeadingSensor(opmode.hardwareMap.get(BNO055IMU.class, "imu"));
             mIMU.init(0);  // orientation of REV hub in my ratbot
             //mIMU.setDegreesPerTurn(355.0f);  // appears that's what my IMU does ... set this for your IMU
 
             // get grabber servo so we can test it
-            mServo = mf.getServo("grabServo");
+            mServo = mf.getServo("grab");
         }
         catch (IllegalArgumentException iax) {
             bOkay = false;
